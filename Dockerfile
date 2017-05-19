@@ -67,35 +67,18 @@ RUN set -ex \
         /usr/share/doc \
         /usr/share/doc-base
 
-RUN apt-get update && \
-      apt-get -y install sudo
-
 # gcloud
-RUN export DEBIAN_FRONTEND=noninteractive
-RUN apt-get install lsb-release
-# Create an environment variable for the correct distribution
-RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
-# Add the Cloud SDK distribution URI as a package source
-RUN echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-# Import the Google Cloud Platform public key
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update && apt-get install -y curl python2.7 apt-transport-https lsb-release
+RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
+    echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
 RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
-RUN apt-get install apt-transport-https ca-certificates
-RUN apt-get install openssh-client
-# Update the package list and install the Cloud SDK
-RUN apt-get update && apt-get install google-cloud-sdk
-RUN apt-get install python-pip python-dev build-essential
-RUN pip install --upgrade google-api-python-client
-RUN pip install --upgrade google-cloud-bigquery
-RUN gcloud info
-RUN echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | tee /etc/apt/sources.list.d/java-8-debian.list
-RUN echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | tee -a /etc/apt/sources.list.d/java-8-debian.list
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EEA14886
-RUN apt-get update
-RUN apt-get install oracle-java8-installer
-RUN apt-get install oracle-java8-set-default
-RUN apt-get install maven
-RUN mvn -version
-RUN apt-get install sshpass
+ENV HOME /
+RUN  apt-get update && apt-get install -y google-cloud-sdk
+
+RUN gcloud config set core/disable_usage_reporting true
+RUN gcloud config set component_manager/disable_update_check true
+VOLUME ["/.config"]
 
 ENV KUBECTL_VERSION 1.3.0
 
